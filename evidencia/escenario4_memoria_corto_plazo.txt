@@ -1,0 +1,6 @@
+Agente MicroLogist (hilo 'evidencia'). Escribe 'salir' para terminar.
+
+Tú: 
+Agente: El primer vehículo que se bloqueó fue el **KXTR45**. Se le cambió el estado a 'bloqueado' porque tenía la revisión técnica vencida, y se creó una orden de tipo documento con prioridad 'alta' para regularizarlo.
+
+Tú: 

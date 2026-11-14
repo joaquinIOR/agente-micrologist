@@ -2,6 +2,8 @@
 
 Evaluación Parcial 2 · ISY0101 Ingeniería de Soluciones con IA
 
+Autor: Joaquín Orellana Canales
+
 Agente que revisa la flota de una empresa de transporte (datos simulados), detecta documentos vencidos o por
 vencer y mantenciones atrasadas, consulta las políticas internas, y actúa: crea órdenes de trabajo, bloquea
 vehículos y redacta informes. Planifica las tareas por prioridad y replanifica cuando una condición cambia.
@@ -59,6 +61,9 @@ El razonamiento lo aportan los nodos `planificar`, `ejecutar` y `revisar`.
 
 - **Corto plazo:** el historial de cada conversación se guarda con el *checkpointer* de LangGraph en
   `datos/hilos.db`, por `thread_id`. Al volver a ejecutar `python main.py <hilo>` la conversación continúa.
+  Para flujos prolongados, al modelo se envía el turno actual completo y los turnos anteriores más recientes que
+  caben en 6.000 tokens (`trim_messages`); el historial completo sigue guardado. Así un hilo largo no excede la
+  ventana del modelo ni multiplica el consumo de tokens.
 - **Largo plazo y recuperación semántica:** Chroma persistente en `datos/chroma/`, con embeddings locales.
   La colección `recuerdos` se consulta al inicio de cada turno; la colección `politicas` es la base de conocimiento.
 
@@ -117,6 +122,19 @@ El segundo comando usa otro hilo de conversación. La consola muestra cada paso:
 | 4 | `¿Y qué pasó con el primero que bloqueaste?` | Memoria de corto plazo: resuelve la referencia con el historial del hilo. |
 | 5 | `Genera un informe del estado de la flota` | Escritura: archivo en `datos/informes/`. |
 | 6 | `Bloquea el vehículo ABCD12` | Patente inexistente: la herramienta rechaza y el agente lo informa sin inventar datos. |
+| 7 | `¿Cómo está el PGSY90?` | Solo una pregunta: consulta y responde sin crear órdenes ni cambiar estados. |
+
+### Evidencia de ejecución real (Gemini)
+
+Las trazas completas de la consola están en [evidencia/](evidencia/):
+
+| Archivo | Escenario |
+|---|---|
+| `escenario1_gemini.txt` | 1 y 2: plan priorizado, bloqueo de KXTR45 y rechazo de la orden duplicada de HRBD78 |
+| `escenario3a_guardar_recuerdo.txt` y `escenario3b_recuerdo_en_otro_hilo.txt` | 3: el recuerdo guardado en un hilo aparece en otro; el agente deduce que, como hoy es sábado, el PGSY90 puede ir al taller el lunes |
+| `escenario4_memoria_corto_plazo.txt` | 4: «el primero que bloqueaste» se resuelve como KXTR45 con el historial del hilo |
+| `escenarios_pregunta_y_patente_inexistente.txt` | 7 y 6: una pregunta no genera escrituras; la patente inexistente se informa sin inventar datos |
+| `pytest.txt` | Resultado de las pruebas |
 
 ## Pruebas
 
@@ -125,8 +143,8 @@ python -m pytest -q
 ```
 
 [tests/test_agente.py](tests/test_agente.py) cubre: consulta ordenada por urgencia, validaciones de escritura,
-recuperación semántica, el grafo completo (replanificación y continuidad del hilo) y el rechazo de escrituras
-no autorizadas, con un LLM guionado, sin API key.
+recuperación semántica, el grafo completo (replanificación y continuidad del hilo), el rechazo de escrituras
+no autorizadas y el recorte del historial en hilos largos, con un LLM guionado, sin API key.
 
 ## Estructura
 
@@ -163,7 +181,8 @@ tests/                  pruebas
 
 ## Limitaciones conocidas
 
-- El historial de un hilo no se resume ni recorta; un hilo muy largo puede exceder la ventana del modelo.
+- Los turnos antiguos de un hilo se recortan, no se resumen: lo que quede fuera de la ventana de 6.000 tokens solo
+  se conserva si el agente lo guardó en la memoria de largo plazo.
 - Los embeddings por defecto de Chroma están entrenados principalmente en inglés.
 - Datos y políticas son simulados; no hay conexión con el sistema real de MicroLogist.
 - Las capas gratuitas de Gemini y Groq tienen límites de uso diarios; el escenario 1 completo consume una parte importante. Para la demo conviene llegar con la cuota del día sin usar.

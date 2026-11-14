@@ -124,7 +124,9 @@ tabla([
 ], [3.2, 6.5, 6.8])
 p("La memoria de corto plazo permite que el agente resuelva referencias dentro de una conversación, por ejemplo "
   "«¿y qué pasó con el primero que bloqueaste?». Como el historial queda guardado en disco, al volver a ejecutar "
-  "python main.py con el mismo hilo la conversación continúa donde quedó.")
+  "python main.py con el mismo hilo la conversación continúa donde quedó. Para que un flujo prolongado no exceda la "
+  "ventana del modelo, se envía el turno actual completo y solo los turnos anteriores más recientes que caben en "
+  "6.000 tokens (trim_messages); el historial completo sigue guardado en disco.")
 p("La memoria de largo plazo tiene dos colecciones en Chroma. La colección recuerdos se consulta al inicio de cada "
   "turno, así un dato guardado en una conversación aparece en otra distinta. La colección politicas es la base de "
   "conocimiento: el agente la consulta antes de actuar. Elegí recuperación semántica porque el usuario no repite "
@@ -177,9 +179,10 @@ doc.add_heading("7. Pruebas", 1)
 p("Las pruebas se ejecutan con python -m pytest -q y usan un modelo guionado, que entrega respuestas fijas, para "
   "probar la orquestación sin clave de API. Cubren la consulta ordenada por urgencia, las validaciones de escritura "
   "(orden duplicada, vehículo en taller, ruta del informe), la recuperación semántica, el grafo completo con "
-  "replanificación y continuidad del hilo, y el rechazo de escrituras no autorizadas.")
+  "replanificación y continuidad del hilo, el rechazo de escrituras no autorizadas y el recorte del historial en "
+  "hilos largos sin perder el turno actual.")
 
-p("Resultado: los 5 casos de prueba pasan (5 passed). La salida completa está en evidencia/pytest.txt.")
+p("Resultado: los 6 casos de prueba pasan (6 passed). La salida completa está en evidencia/pytest.txt.")
 
 doc.add_heading("Evidencia de ejecución real", 2)
 p("Extracto de la ejecución del escenario 1 con Gemini, ante el mensaje «Revisa la flota y regulariza todo lo "
@@ -209,10 +212,22 @@ p("")
 p("La traza muestra el orden de prioridad de la política (vencidos, por vencer, mantenciones), la consulta de la "
   "política antes de actuar y la adaptación ante una condición distinta: HRBD78 está en taller y ya tiene una orden, "
   "así que el agente no lo bloquea y la herramienta rechaza la orden duplicada.")
+p("Las ejecuciones de memoria y de decisiones también quedaron registradas en la carpeta evidencia:")
+tabla([
+    ["Mensaje", "Resultado real"],
+    ["Hilo A: «Recuerda que el taller no recibe vehículos los sábados»",
+     "Guarda el recuerdo en la memoria de largo plazo."],
+    ["Hilo B, nuevo: «¿Cuándo puedo mandar el PGSY90 al taller?»",
+     "Recupera el recuerdo en [memoria] y responde que, como hoy es sábado, puede ir el lunes."],
+    ["Mismo hilo del escenario 1: «¿Y qué pasó con el primero que bloqueaste?»",
+     "Responde KXTR45 usando el historial del hilo (memoria de corto plazo)."],
+    ["«¿Cómo está el PGSY90?»", "Consulta y responde sin crear órdenes ni cambiar estados."],
+    ["«Bloquea el vehículo ABCD12»", "Informa que la patente no existe y no inventa datos."],
+], [8.2, 8.3])
 
 doc.add_heading("8. Limitaciones", 1)
-p("El historial de un hilo no se resume ni se recorta, por lo que una conversación muy larga puede exceder la ventana "
-  "del modelo y aumenta el consumo de tokens. Los embeddings por defecto de Chroma están entrenados principalmente en "
+p("Los turnos antiguos de un hilo se recortan, no se resumen: lo que queda fuera de la ventana de 6.000 tokens solo "
+  "se conserva si el agente lo guardó en la memoria de largo plazo. Los embeddings por defecto de Chroma están entrenados principalmente en "
   "inglés; funcionan con las políticas actuales, pero si la base crece conviene un modelo multilingüe. Las capas "
   "gratuitas de Gemini y Groq limitan el uso diario de tokens.")
 

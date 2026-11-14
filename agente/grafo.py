@@ -7,7 +7,8 @@ import time
 from datetime import date
 from typing import Annotated, Literal, TypedDict
 
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage, trim_messages
+from langchain_core.messages.utils import count_tokens_approximately
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import tools_condition
@@ -17,6 +18,21 @@ from . import memoria
 from .herramientas import HERRAMIENTAS
 
 MAX_PLANES = 3  # tope de replanificaciones: evita un bucle infinito planificar/revisar
+MAX_TOKENS_HISTORIAL = 6000  # turnos anteriores que se envían al modelo; el turno actual va siempre completo
+REVISION = "[Revisión automática]"
+
+
+def _recientes(mensajes):
+    """Turno actual completo + los turnos anteriores más recientes que caben en MAX_TOKENS_HISTORIAL.
+
+    El historial completo sigue guardado en el checkpointer; solo se acota lo que se envía al modelo, para que un
+    hilo largo no exceda la ventana ni multiplique el consumo de tokens. Lo que deba recordarse más allá de esa
+    ventana va a la memoria de largo plazo (guardar_recuerdo)."""
+    inicio = max((i for i, m in enumerate(mensajes)
+                  if m.type == "human" and not str(m.content).startswith(REVISION)), default=0)
+    anteriores = trim_messages(mensajes[:inicio], max_tokens=MAX_TOKENS_HISTORIAL, strategy="last",
+                               token_counter=count_tokens_approximately, start_on="human")
+    return anteriores + mensajes[inicio:]
 
 ROL = ("Eres el asistente de gestión de flota de MicroLogist, una empresa de transporte. "
        "Respondes en español. Nunca inventas datos: todo dato de vehículos sale de las herramientas.")
@@ -107,7 +123,7 @@ def construir(llm, checkpointer=None):
             "cuenta lo que ya se hizo.\n"
             f"Recuerdos de conversaciones anteriores:\n{estado['contexto'] or '(ninguno)'}")
         plan = _invocar(planificador, [instruccion, HumanMessage(
-            f"Conversación hasta ahora:\n{_transcripcion(estado['messages'])}\n\nEntrega el plan.")])
+            f"Conversación hasta ahora:\n{_transcripcion(_recientes(estado['messages']))}\n\nEntrega el plan.")])
         return {"plan": plan.pasos, "planes": estado["planes"] + 1, "escrituras": plan.escrituras}
 
     def ejecutar(estado):
@@ -122,7 +138,7 @@ def construir(llm, checkpointer=None):
             "No uses otras herramientas de escritura: serán rechazadas. "
             "Al terminar, resume lo que hiciste.\n"
             f"Recuerdos de conversaciones anteriores:\n{estado['contexto'] or '(ninguno)'}")
-        return {"messages": [_invocar(ejecutor, [instruccion] + estado["messages"])]}
+        return {"messages": [_invocar(ejecutor, [instruccion] + _recientes(estado["messages"]))]}
 
     def herramientas(estado):
         # La autorización se impone aquí y no en el prompt: el modelo ignoraba la instrucción y escribía sin que se lo pidieran.
@@ -148,11 +164,11 @@ def construir(llm, checkpointer=None):
                           "contesta la solicitud con datos de las herramientas, está completo. Una acción rechazada "
                           "por una herramienta y explicada al usuario cuenta como resuelta. "
                           f"Plan de referencia: {estado['plan']}"),
-            HumanMessage(f"Conversación:\n{_transcripcion(estado['messages'])}\n\nEvalúa el resultado.")])
+            HumanMessage(f"Conversación:\n{_transcripcion(_recientes(estado['messages']))}\n\nEvalúa el resultado.")])
         if rev.completo or not rev.pendiente:
             return {"pendiente": ""}
         return {"pendiente": rev.pendiente,
-                "messages": [HumanMessage(f"[Revisión automática] Falta: {rev.pendiente}")]}
+                "messages": [HumanMessage(f"{REVISION} Falta: {rev.pendiente}")]}
 
     g = StateGraph(Estado)
     g.add_node("recuperar", recuperar)
@@ -166,5 +182,5 @@ def construir(llm, checkpointer=None):
     g.add_conditional_edges("ejecutar", tools_condition, {"tools": "herramientas", END: "revisar"})
     g.add_edge("herramientas", "ejecutar")
     g.add_conditional_edges("revisar", tras_revision, {"planificar": "planificar", END: END})
-    # shortcut: el historial del hilo no se resume ni recorta; agregar trim_messages si los hilos superan la ventana del modelo
+    # shortcut: los turnos antiguos se recortan, no se resumen; agregar un resumen si se necesita contexto de turnos muy lejanos
     return g.compile(checkpointer=checkpointer)

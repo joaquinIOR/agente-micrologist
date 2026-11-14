@@ -1,0 +1,23 @@
+Agente MicroLogist (hilo 'memoria-b'). Escribe 'salir' para terminar.
+
+Tú:   [memoria] [2026-11-14] el taller no recibe vehículos los sábados
+  [plan] Consultar el estado real de la flota. | Buscar la política aplicable. | Consultar el vehículo PGSY90.
+  [herramienta] revisar_flota({})
+  [resultado] {"documentos": [{"patente": "HRBD78", "estado": "en_taller", "tipo": "revision_tecnica", "vence": "2026-10-25", "dias_restantes": -20}, {"patente": "KXTR45", "estado": "bloqueado", "tipo": "revision_tecnica", "vence": "2026-11-09", "dias_restantes": -5}, {"patente": "LJPW12", "estado": "operativo", "tipo": "soap", "vence": "2026-11-24", "dias_restantes": 10}, {"patente": "PGSY90", "estado": "operativo", "tipo": "revision_tecnica", "vence": "2026-12-09", "dias_restantes": 25}], "mantenciones_atrasadas": [{"patente": "HRBD78", "estado": "en_taller", "km_desde_mantencion": 12500}, {"patente": "PGSY90", "estado": "operativo", "km_desde_mantencion": 11500}]}
+  [herramienta] buscar_politica({'consulta': 'enviar vehículo a taller'})
+  [resultado] - Un vehículo que está en taller no se bloquea ni se le cambia el estado hasta que el taller lo libere, y no se duplica una orden que ya está abierta para el mismo vehículo y tipo.
+- Un documento que vence en 15 días o menos genera una orden de tipo documento con prioridad media; si vence entre 16 y 30 días, prioridad baja. El vehículo sigue operativo.
+- La mantención preventiva corresponde cada 10.000 km desde la última mantención. Si se supera ese kilometraje se crea una orden de tipo mantencion con prioridad media.
+  [herramienta] consultar_vehiculo({'patente': 'PGSY90'})
+  [resultado] {"patente": "PGSY90", "modelo": "Camioneta Toyota Hilux", "km": 91500, "km_ultima_mantencion": 80000, "estado": "operativo", "km_desde_mantencion": 11500, "documentos": [{"tipo": "revision_tecnica", "vence": "2026-12-09"}, {"tipo": "permiso_circulacion", "vence": "2027-04-03"}, {"tipo": "soap", "vence": "2027-04-03"}], "ordenes_abiertas": [{"id": 4, "tipo": "documento", "motivo": "revision_tecnica por vencer", "prioridad": "baja"}, {"id": 6, "tipo": "mantencion", "motivo": "mantencion por kilometraje", "prioridad": "media"}]}
+
+Agente: El vehículo PGSY90 tiene una mantención pendiente por kilometraje (11.500 km desde la última mantención, superando los 10.000 km requeridos) y ya existe una orden de trabajo abierta de tipo "mantención" con prioridad media.
+
+Sin embargo, hoy es sábado 14 de noviembre de 2026, y el taller no recibe vehículos los sábados. Por lo tanto, podrás enviar el PGSY90 al taller a partir del lunes 16 de noviembre de 2026.
+
+**Resumen de lo que hice:**
+1. Consulté el estado general de la flota para identificar pendientes.
+2. Busqué la política interna sobre el envío de vehículos al taller.
+3. Consulté la ficha específica del vehículo PGSY90 para conocer su estado, documentos y órdenes abiertas.
+
+Tú: 

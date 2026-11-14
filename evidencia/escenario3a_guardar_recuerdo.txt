@@ -1,0 +1,9 @@
+Agente MicroLogist (hilo 'memoria-a'). Escribe 'salir' para terminar.
+
+Tú:   [plan] Guardar el recuerdo sobre la disponibilidad del taller.
+  [herramienta] guardar_recuerdo({'texto': 'el taller no recibe vehículos los sábados'})
+  [resultado] Recuerdo guardado.
+
+Agente: He guardado el recuerdo de que el taller no recibe vehículos los sábados.
+
+Tú: 

@@ -89,3 +89,22 @@ def test_escritura_no_autorizada_se_rechaza():
                                                {"configurable": {"thread_id": "t2"}})
     assert "Rechazada" in fin["messages"][-2].content
     assert not conectar().execute("SELECT 1 FROM ordenes WHERE patente='PGSY90'").fetchone()
+
+
+def test_historial_largo_se_recorta_y_conserva_el_turno_actual():
+    from langchain_core.messages import HumanMessage
+    from langchain_core.messages.utils import count_tokens_approximately
+
+    from agente.grafo import MAX_TOKENS_HISTORIAL, REVISION, _recientes
+
+    viejos = []
+    for i in range(300):  # un hilo muy largo: ~300 turnos anteriores
+        viejos += [HumanMessage(f"pregunta {i} " + "x" * 200), AIMessage(f"respuesta {i} " + "y" * 200)]
+    turno = [HumanMessage("Regulariza KXTR45"), _llamada("cambiar_estado", patente="KXTR45", estado="bloqueado"),
+             HumanMessage(f"{REVISION} Falta: crear la orden")]
+    enviados = _recientes(viejos + turno)
+    assert enviados[-3:] == turno  # el turno actual va completo, incluida la revisión automática
+    anteriores = enviados[:-3]
+    assert anteriores and anteriores[0].type == "human" and anteriores[-1].content.startswith("respuesta 299")
+    assert count_tokens_approximately(anteriores) <= MAX_TOKENS_HISTORIAL
+    assert _recientes(turno) == turno  # un hilo corto no se toca

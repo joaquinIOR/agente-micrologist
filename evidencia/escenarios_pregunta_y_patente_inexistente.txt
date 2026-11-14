@@ -1,0 +1,47 @@
+Agente MicroLogist (hilo 'decisiones'). Escribe 'salir' para terminar.
+
+Tú:   [memoria] [2026-11-14] el taller no recibe vehículos los sábados
+  [plan] Consultar el estado del vehículo PGSY90.
+  [herramienta] consultar_vehiculo({'patente': 'PGSY90'})
+  [resultado] {"patente": "PGSY90", "modelo": "Camioneta Toyota Hilux", "km": 91500, "km_ultima_mantencion": 80000, "estado": "operativo", "km_desde_mantencion": 11500, "documentos": [{"tipo": "revision_tecnica", "vence": "2026-12-09"}, {"tipo": "permiso_circulacion", "vence": "2027-04-03"}, {"tipo": "soap", "vence": "2027-04-03"}], "ordenes_abiertas": [{"id": 4, "tipo": "documento", "motivo": "revision_tecnica por vencer", "prioridad": "baja"}, {"id": 6, "tipo": "mantencion", "motivo": "mantencion por kilometraje", "prioridad": "media"}]}
+  [herramienta] buscar_politica({'consulta': 'mantencion por kilometraje'})
+
+Agente: El vehículo PGSY90, una Camioneta Toyota Hilux, se encuentra operativo. Tiene 91.500 km y ha recorrido 11.500 km desde su última mantención, la cual fue a los 80.000 km.
+
+Sus documentos son:
+*   Revisión técnica: vence el 09-12-2026.
+*   Permiso de circulación: vence el 03-04-2027.
+*   SOAP: vence el 03-04-2027.
+
+Tiene dos órdenes abiertas:
+*   ID 4: Revisión técnica por vencer (prioridad baja).
+*   ID 6: Mantención por kilometraje (prioridad media).
+
+Ahora, consultaré la política para ver qué acciones tomar respecto a la mantención por kilometraje y la revisión técnica por vencer.
+  [resultado] - La mantención preventiva corresponde cada 10.000 km desde la última mantención. Si se supera ese kilometraje se crea una orden de tipo mantencion con prioridad media.
+- Cuando hay varias tareas pendientes se atienden primero los documentos vencidos, después los documentos próximos a vencer y al final las mantenciones preventivas.
+- Un documento que vence en 15 días o menos genera una orden de tipo documento con prioridad media; si vence entre 16 y 30 días, prioridad baja. El vehículo sigue operativo.
+
+Agente: He consultado la política de mantención por kilometraje y documentos próximos a vencer.
+
+Según la política:
+*   La mantención preventiva se realiza cada 10.000 km. El PGSY90 tiene 11.500 km desde la última mantención, por lo que corresponde una orden de mantención de prioridad media. Ya existe una orden abierta (ID 6) para esto.
+*   Un documento que vence entre 16 y 30 días genera una orden de prioridad baja y el vehículo sigue operativo. La revisión técnica del PGSY90 vence en 25 días (el 09-12-2026), lo que coincide con la política. Ya existe una orden abierta (ID 4) para la revisión técnica con prioridad baja.
+
+Dado que ya existen órdenes abiertas que cumplen con las políticas para la mantención y la revisión técnica, y el vehículo debe permanecer operativo según la política, no es necesario crear nuevas órdenes ni cambiar el estado del vehículo.
+
+**Resumen de lo realizado:**
+1.  Consulté el estado del vehículo PGSY90.
+2.  Consulté la política de mantención por kilometraje y documentos próximos a vencer.
+3.  Verifiqué que las órdenes abiertas existentes para el PGSY90 (mantención por kilometraje y revisión técnica por vencer) cumplen con las políticas de la empresa y que el estado actual del vehículo ("operativo") también es el correcto según las políticas.
+
+No se requirieron acciones adicionales (creación de órdenes o cambios de estado) ya que las condiciones actuales del vehículo y las órdenes existentes se ajustan a las políticas.
+
+Tú:   [memoria] [2026-11-14] el taller no recibe vehículos los sábados
+  [plan] Consultar el estado del vehículo ABCD12. | Buscar la política aplicable para bloquear un vehículo. | Cambiar el estado del vehículo ABCD12 a bloqueado.
+  [herramienta] consultar_vehiculo({'patente': 'ABCD12'})
+  [resultado] No existe un vehículo con patente ABCD12.
+
+Agente: El vehículo con patente ABCD12 no existe. Por lo tanto, no puedo bloquearlo.
+
+Tú: 
