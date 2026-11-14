@@ -179,6 +179,15 @@ resultados que se describen en este README vienen de ejecuciones reales del agen
 
 ## Referencias
 
-- Chroma. (s. f.). *Chroma documentation*. https://docs.trychroma.com
-- LangChain. (s. f.). *LangChain documentation*. https://docs.langchain.com
-- LangChain. (s. f.). *LangGraph documentation*. https://docs.langchain.com/oss/python/langgraph/overview
+- Chroma. (s. f.). *Chroma documentation* [Documentación de software]. https://docs.trychroma.com
+- Groq. (s. f.). *GroqCloud documentation* [Documentación de software]. https://console.groq.com/docs
+- LangChain. (s. f.-a). *LangChain documentation* [Documentación de software]. https://docs.langchain.com
+- LangChain. (s. f.-b). *LangGraph documentation* [Documentación de software]. https://docs.langchain.com/oss/python/langgraph/overview
+- Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W., Rocktäschel, T., Riedel, S., & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. *Advances in Neural Information Processing Systems, 33*, 9459–9474. https://arxiv.org/abs/2005.11401
+- OpenAI. (2025). *gpt-oss-120b & gpt-oss-20b model card* (arXiv:2508.10925). arXiv. https://doi.org/10.48550/arXiv.2508.10925
+- Pydantic. (s. f.). *Pydantic documentation* [Documentación de software]. https://docs.pydantic.dev
+- pytest. (s. f.). *pytest documentation* [Documentación de software]. https://docs.pytest.org
+- Reimers, N., & Gurevych, I. (2019). Sentence-BERT: Sentence embeddings using Siamese BERT-networks. En *Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing* (pp. 3982–3992). Association for Computational Linguistics. https://arxiv.org/abs/1908.10084
+- SQLite. (s. f.). *SQLite documentation* [Documentación de software]. https://www.sqlite.org/docs.html
+- Wang, L., Xu, W., Lan, Y., Hu, Z., Lan, Y., Lee, R. K.-W., & Lim, E.-P. (2023). Plan-and-solve prompting: Improving zero-shot chain-of-thought reasoning by large language models. En *Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics* (pp. 2609–2634). Association for Computational Linguistics. https://arxiv.org/abs/2305.04091
+- Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). ReAct: Synergizing reasoning and acting in language models. En *International Conference on Learning Representations (ICLR 2023)*. https://arxiv.org/abs/2210.03629
