@@ -108,3 +108,30 @@ def test_historial_largo_se_recorta_y_conserva_el_turno_actual():
     assert anteriores and anteriores[0].type == "human" and anteriores[-1].content.startswith("respuesta 299")
     assert count_tokens_approximately(anteriores) <= MAX_TOKENS_HISTORIAL
     assert _recientes(turno) == turno  # un hilo corto no se toca
+
+
+class ModeloSinCuota(ModeloGuionado):
+    """LLM falso que siempre falla, como un proveedor con la cuota diaria agotada."""
+
+    def __init__(self):
+        super().__init__([])
+        self.llamadas = 0
+
+    def invoke(self, _):
+        self.llamadas += 1
+        raise RuntimeError("429 cuota diaria agotada")
+
+
+def test_respaldo_automatico_cuando_el_principal_falla():
+    principal = ModeloSinCuota()
+    respaldo = ModeloGuionado([
+        Plan(pasos=["Consultar KXTR45"]),
+        _llamada("consultar_vehiculo", patente="KXTR45"),
+        AIMessage("KXTR45 está bloqueado."),
+        Revision(completo=True, pendiente=""),
+    ])
+    fin = construir(principal, MemorySaver(), respaldo).invoke({"messages": [("user", "¿Cómo está el KXTR45?")]},
+                                                             {"configurable": {"thread_id": "t3"}})
+    assert fin["messages"][-1].content == "KXTR45 está bloqueado."
+    assert principal.llamadas == 3  # un solo intento fallido (con sus reintentos); después sigue con el respaldo
+    assert not respaldo.guion

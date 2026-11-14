@@ -32,10 +32,20 @@ def main():
     hilo = sys.argv[1] if len(sys.argv) > 1 else "principal"
     DIR.mkdir(parents=True, exist_ok=True)
     llm = init_chat_model(os.environ.get("LLM_MODELO", "google_genai:gemini-2.5-flash"), temperature=0)
+    respaldo = None
+    if os.environ.get("LLM_RESPALDO", "").startswith("groq:") and not os.environ.get("GROQ_API_KEY"):
+        print("  [aviso] sin modelo de respaldo: falta GROQ_API_KEY en el .env")
+    elif os.environ.get("LLM_RESPALDO"):
+        try:
+            respaldo = init_chat_model(os.environ["LLM_RESPALDO"], temperature=0)
+        except Exception as e:  # p. ej. falta la key del respaldo: el agente funciona igual, solo sin respaldo
+            print(f"  [aviso] sin modelo de respaldo: {e}")
     checkpointer = SqliteSaver(sqlite3.connect(DIR / "hilos.db", check_same_thread=False))
-    agente = construir(llm, checkpointer)
+    agente = construir(llm, checkpointer, respaldo)
     config = {"configurable": {"thread_id": hilo}}
     print(f"Agente MicroLogist (hilo '{hilo}'). Escribe 'salir' para terminar.")
+    if respaldo:
+        print(f"Modelo: {os.environ.get('LLM_MODELO')} · respaldo: {os.environ['LLM_RESPALDO']}")
     while (texto := input("\nTú: ").strip()) != "salir":
         if not texto:
             continue

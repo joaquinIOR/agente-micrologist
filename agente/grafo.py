@@ -66,7 +66,7 @@ class Revision(BaseModel):
     pendiente: str = Field(description="Qué falta o qué condición cambió. Vacío si está completo.")
 
 
-def _invocar(modelo, mensajes):
+def _con_reintentos(modelo, mensajes):
     for intento in range(3):  # el modelo a veces genera una salida inválida y el proveedor responde 400
         try:
             return modelo.invoke(mensajes)
@@ -75,10 +75,34 @@ def _invocar(modelo, mensajes):
                 raise
             if getattr(e, "status_code", None) == 429:
                 # Límite por minuto: se espera lo que indica el proveedor. Límite diario (espera larga): se informa.
-                espera = float(e.response.headers.get("retry-after", 999))
+                cabeceras = getattr(getattr(e, "response", None), "headers", None) or {}
+                espera = float(cabeceras.get("retry-after", 999))
                 if espera > 60:
                     raise
                 time.sleep(espera + 1)
+
+
+class _Modelos:
+    """Modelo principal con respaldo: si el principal falla (cuota diaria agotada, proveedor caído), la llamada se
+    repite con el de respaldo, y desde ahí se sigue usando el respaldo para no gastar intentos en uno sin cuota."""
+
+    def __init__(self, principal, respaldo=None):
+        self.principal, self.respaldo, self.en_respaldo = principal, respaldo, False
+
+    def preparar(self, fn):
+        return fn(self.principal), (fn(self.respaldo) if self.respaldo else None)
+
+    def invocar(self, par, mensajes):
+        principal, respaldo = par
+        if not self.en_respaldo:
+            try:
+                return _con_reintentos(principal, mensajes)
+            except Exception as e:
+                if respaldo is None:
+                    raise
+                print(f"  [respaldo] el modelo principal falló ({type(e).__name__}); sigo con el modelo de respaldo")
+                self.en_respaldo = True
+        return _con_reintentos(respaldo, mensajes)
 
 
 def _transcripcion(mensajes):
@@ -100,10 +124,12 @@ def tras_revision(estado: Estado) -> str:
     return "planificar" if estado["pendiente"] and estado["planes"] < MAX_PLANES else END
 
 
-def construir(llm, checkpointer=None):
-    planificador = llm.with_structured_output(Plan)
-    revisor = llm.with_structured_output(Revision)
-    ejecutor = llm.bind_tools(HERRAMIENTAS)
+def construir(llm, checkpointer=None, respaldo=None):
+    modelos = _Modelos(llm, respaldo)
+    planificador = modelos.preparar(lambda m: m.with_structured_output(Plan))
+    revisor = modelos.preparar(lambda m: m.with_structured_output(Revision))
+    ejecutor = modelos.preparar(lambda m: m.bind_tools(HERRAMIENTAS))
+    _invocar = modelos.invocar
 
     def recuperar(estado):
         recuerdos = memoria.buscar("recuerdos", estado["messages"][-1].content)

@@ -78,8 +78,10 @@ adaptar el resto del plan a esa condición.
 escritura no autorizada: en las pruebas con el modelo real, la instrucción en el prompt no bastaba y el agente
 creaba órdenes ante una simple pregunta.
 
-**Límites del proveedor.** Ante un límite por minuto el agente espera lo que indica el proveedor y reintenta;
-ante el límite diario informa el error sin botar la sesión.
+**Límites del proveedor y respaldo automático.** Ante un límite por minuto el agente espera lo que indica el
+proveedor y reintenta. Si el modelo principal falla igual (cuota diaria agotada o proveedor caído), la misma llamada
+se repite con el modelo de respaldo (`LLM_RESPALDO`, Groq por defecto) y desde ahí sigue con él; la consola lo
+muestra como `[respaldo]`. Sin respaldo configurado, informa el error sin botar la sesión.
 
 ## Instalación
 
@@ -97,7 +99,8 @@ py -3.12 -m venv .venv
 pip install -r requirements.txt
 ```
 
-Copiar `.env.example` a `.env` y completar `GOOGLE_API_KEY` (key gratuita en https://aistudio.google.com/apikey). El proveedor se puede cambiar en `LLM_MODELO`; el `.env.example` deja Groq listo como respaldo.
+Copiar `.env.example` a `.env` y completar `GOOGLE_API_KEY` (key gratuita en https://aistudio.google.com/apikey). El proveedor se puede cambiar en `LLM_MODELO`. Para el respaldo automático, completar también `GROQ_API_KEY`
+(key gratuita en https://console.groq.com/keys); sin ella el agente funciona igual, solo que sin respaldo.
 
 ## Ejecución
 
@@ -144,7 +147,8 @@ python -m pytest -q
 
 [tests/test_agente.py](tests/test_agente.py) cubre: consulta ordenada por urgencia, validaciones de escritura,
 recuperación semántica, el grafo completo (replanificación y continuidad del hilo), el rechazo de escrituras
-no autorizadas y el recorte del historial en hilos largos, con un LLM guionado, sin API key.
+no autorizadas, el recorte del historial en hilos largos y el respaldo automático cuando el modelo principal falla,
+con un LLM guionado, sin API key.
 
 ## Estructura
 
@@ -176,7 +180,8 @@ tests/                  pruebas
 - **Gemini (`gemini-2.5-flash`) como modelo principal y Groq como respaldo:** el agente partió con Groq y
   `openai/gpt-oss-120b`, pero su cuota diaria gratuita se agotaba con pocas ejecuciones completas. Gemini tiene capa
   gratuita, soporta herramientas y salida estructurada (verificado con el agente) y una ventana de contexto amplia.
-  Como el modelo se carga con `init_chat_model`, volver a Groq es cambiar una línea del `.env`. En Groq, el modelo de
+  Como el modelo se carga con `init_chat_model`, cambiar de proveedor es cambiar una línea del `.env`. Groq quedó
+  como respaldo automático, así que una cuota agotada durante la demo no detiene al agente. En Groq, el modelo de
   20B siguió peor el plan que el de 120B.
 
 ## Limitaciones conocidas

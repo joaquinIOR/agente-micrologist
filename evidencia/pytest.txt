@@ -1,7 +1,8 @@
-﻿tests/test_agente.py::test_consulta_flota_ordena_por_urgencia PASSED     [ 16%]
-tests/test_agente.py::test_escritura_valida_y_no_duplica PASSED          [ 33%]
-tests/test_agente.py::test_memoria_semantica PASSED                      [ 50%]
-tests/test_agente.py::test_grafo_replanifica_y_recuerda_el_hilo PASSED   [ 66%]
-tests/test_agente.py::test_escritura_no_autorizada_se_rechaza PASSED     [ 83%]
-tests/test_agente.py::test_historial_largo_se_recorta_y_conserva_el_turno_actual PASSED [100%]
-============================== 6 passed in 8.83s ==============================
+﻿tests/test_agente.py::test_consulta_flota_ordena_por_urgencia PASSED     [ 14%]
+tests/test_agente.py::test_escritura_valida_y_no_duplica PASSED          [ 28%]
+tests/test_agente.py::test_memoria_semantica PASSED                      [ 42%]
+tests/test_agente.py::test_grafo_replanifica_y_recuerda_el_hilo PASSED   [ 57%]
+tests/test_agente.py::test_escritura_no_autorizada_se_rechaza PASSED     [ 71%]
+tests/test_agente.py::test_historial_largo_se_recorta_y_conserva_el_turno_actual PASSED [ 85%]
+tests/test_agente.py::test_respaldo_automatico_cuando_el_principal_falla PASSED [100%]
+============================== 7 passed in 4.83s ==============================

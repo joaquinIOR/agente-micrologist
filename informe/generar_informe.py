@@ -168,8 +168,8 @@ for titulo, texto in [
     ("Gemini como modelo principal y Groq como respaldo. ",
      "Partí con Groq y gpt-oss-120b, pero su cuota diaria gratuita se agotaba con pocas ejecuciones completas. Gemini "
      "tiene capa gratuita, soporta herramientas y salida estructurada, lo que verifiqué con el agente, y tiene una "
-     "ventana de contexto amplia. Como el modelo se carga con init_chat_model, volver a Groq es cambiar una línea del "
-     ".env. En Groq, el modelo de 20B siguió peor el plan que el de 120B."),
+     "ventana de contexto amplia. Groq quedó como respaldo automático: si Gemini falla, la misma llamada se repite con "
+     "Groq y el agente sigue, así una cuota agotada no detiene la demo."),
 ]:
     par = p("")
     par.add_run(titulo).bold = True
@@ -179,10 +179,10 @@ doc.add_heading("7. Pruebas", 1)
 p("Las pruebas se ejecutan con python -m pytest -q y usan un modelo guionado, que entrega respuestas fijas, para "
   "probar la orquestación sin clave de API. Cubren la consulta ordenada por urgencia, las validaciones de escritura "
   "(orden duplicada, vehículo en taller, ruta del informe), la recuperación semántica, el grafo completo con "
-  "replanificación y continuidad del hilo, el rechazo de escrituras no autorizadas y el recorte del historial en "
-  "hilos largos sin perder el turno actual.")
+  "replanificación y continuidad del hilo, el rechazo de escrituras no autorizadas, el recorte del historial en "
+  "hilos largos y el respaldo automático cuando el modelo principal falla.")
 
-p("Resultado: los 6 casos de prueba pasan (6 passed). La salida completa está en evidencia/pytest.txt.")
+p("Resultado: los 7 casos de prueba pasan (7 passed). La salida completa está en evidencia/pytest.txt.")
 
 doc.add_heading("Evidencia de ejecución real", 2)
 p("Extracto de la ejecución del escenario 1 con Gemini, ante el mensaje «Revisa la flota y regulariza todo lo "
