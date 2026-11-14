@@ -68,8 +68,9 @@ p("Autor: Joaquín Orellana Canales", centro=True)
 p("Repositorio: https://github.com/joaquinIOR/agente-micrologist", centro=True)
 
 doc.add_heading("1. Requerimiento organizacional", 1)
-p("MicroLogist es una empresa de transporte que controla los vencimientos de la revisión técnica, el permiso de "
-  "circulación y el SOAP, además de las mantenciones de cada vehículo, revisando ficha por ficha. Este trabajo es "
+p("MicroLogist es un software de gestión de flotas: cada empresa de transporte que lo usa administra ahí su "
+  "propia flota. Para esta evaluación usé Transportes Quillay, una empresa ficticia que controla los vencimientos "
+  "de la revisión técnica, el permiso de circulación y el SOAP, y las mantenciones, revisando ficha por ficha. Este trabajo es "
   "manual, lento y depende de que alguien se acuerde de revisar. Si un documento vence y nadie lo nota, el vehículo "
   "sigue circulando de forma irregular y la empresa queda expuesta a multas.")
 p("Desarrollé un agente que automatiza ese flujo completo: revisa la flota, decide qué hacer según las políticas "
@@ -154,7 +155,7 @@ for titulo, texto in [
      "El proceso tiene etapas definidas y quería que quedaran explícitas como un grafo. LangGraph además trae el "
      "checkpointer para la memoria de corto plazo y permite reemplazar el nodo estándar de herramientas por uno propio "
      "que valida permisos. Para escalar, cada componente se puede cambiar sin tocar el grafo: SQLite por PostgreSQL, "
-     "Chroma local por un servidor vectorial y los datos simulados por la API real de la empresa."),
+     "Chroma local por un servidor vectorial y los datos simulados por la base real de MicroLogist."),
     ("Planificador, ejecutor y revisor separados. ",
      "Cada rol tiene una salida acotada y validable. El plan estructurado fija la prioridad y los permisos antes de "
      "actuar, y el razonamiento queda visible en la consola durante la demostración."),
@@ -232,7 +233,7 @@ p("Los turnos antiguos de un hilo se recortan, no se resumen: lo que queda fuera
   "gratuitas de Gemini y Groq limitan el uso diario de tokens.")
 
 doc.add_heading("9. Conclusión", 1)
-p("El agente resuelve el requerimiento de MicroLogist: revisa la flota, decide según las políticas, registra las "
+p("El agente resuelve el requerimiento de Transportes Quillay dentro de MicroLogist: revisa la flota, decide según las políticas, registra las "
   "acciones e informa, manteniendo el contexto dentro y entre conversaciones. Considero que la decisión más "
   "importante fue validar en código las acciones que modifican datos, porque el modelo no siempre respeta las "
   "instrucciones del prompt. El diseño en grafo permite crecer hacia la operación real cambiando los componentes de "

@@ -26,7 +26,8 @@ def _recientes(mensajes):
                                token_counter=count_tokens_approximately, start_on="human")
     return anteriores + mensajes[inicio:]
 
-ROL = ("Eres el asistente de gestión de flota de MicroLogist, una empresa de transporte. "
+ROL = ("Eres el asistente de gestión de flota de MicroLogist, un software de gestión de flotas. Trabajas para "
+       "Transportes Quillay, una empresa de transporte que usa MicroLogist. "
        "Respondes en español. Nunca inventas datos: todo dato de vehículos sale de las herramientas.")
 
 

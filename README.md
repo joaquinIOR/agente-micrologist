@@ -4,14 +4,16 @@ Evaluación Parcial 2 · ISY0101 Ingeniería de Soluciones con IA
 
 Autor: Joaquín Orellana Canales
 
-Agente que revisa la flota de una empresa de transporte (datos simulados), detecta documentos vencidos o por
-vencer y mantenciones atrasadas, consulta las políticas internas, y actúa: crea órdenes de trabajo, bloquea
+MicroLogist es un software de gestión de flotas: cada empresa de transporte que lo usa administra ahí su propia
+flota. Este agente funciona dentro de MicroLogist y, para la evaluación, trabaja sobre **Transportes Quillay**, una
+empresa ficticia con datos simulados. Revisa su flota, detecta documentos vencidos o por vencer y mantenciones
+atrasadas, consulta las políticas internas, y actúa: crea órdenes de trabajo, bloquea
 vehículos y redacta informes. Planifica las tareas por prioridad y replanifica cuando una condición cambia.
 
 ## Requerimiento organizacional
 
-En MicroLogist el control de vencimientos (revisión técnica, permiso de circulación, SOAP) y de mantenciones
-se hace revisando ficha por ficha. El agente automatiza ese flujo: **revisar → decidir según política → registrar
+En una empresa como Transportes Quillay, el control de vencimientos (revisión técnica, permiso de circulación,
+SOAP) y de mantenciones se hace revisando en MicroLogist ficha por ficha. El agente automatiza ese flujo: **revisar → decidir según política → registrar
 la acción → informar**.
 
 ## Arquitectura y orquestación
@@ -189,7 +191,7 @@ tests/                  pruebas
 - Los turnos antiguos de un hilo se recortan, no se resumen: lo que quede fuera de la ventana de 6.000 tokens solo
   se conserva si el agente lo guardó en la memoria de largo plazo.
 - Los embeddings por defecto de Chroma están entrenados principalmente en inglés.
-- Datos y políticas son simulados; no hay conexión con el sistema real de MicroLogist.
+- Datos y políticas son simulados; no hay conexión con la base real de MicroLogist.
 - Las capas gratuitas de Gemini y Groq tienen límites de uso diarios; el escenario 1 completo consume una parte importante. Para la demo conviene llegar con la cuota del día sin usar.
 - Los modelos pequeños (p. ej. `openai/gpt-oss-20b`) siguen peor el plan y pueden ejecutar acciones no pedidas.
 

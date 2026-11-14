@@ -6,7 +6,7 @@ import chromadb
 
 from .datos import DIR
 
-# Políticas simuladas de MicroLogist.
+# Políticas simuladas de Transportes Quillay (empresa ficticia).
 POLITICAS = [
     "Un vehículo con revisión técnica, permiso de circulación o SOAP vencido no puede circular: "
     "debe quedar en estado 'bloqueado' y se crea una orden de tipo documento con prioridad alta.",

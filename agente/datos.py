@@ -1,4 +1,4 @@
-"""Base SQLite simulada de la flota MicroLogist. Se crea y siembra sola la primera vez."""
+"""Base SQLite simulada: flota de Transportes Quillay (empresa ficticia que usa MicroLogist). Se crea y siembra sola la primera vez."""
 import os
 import sqlite3
 from datetime import date, timedelta
