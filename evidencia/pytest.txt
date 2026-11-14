@@ -1,0 +1,6 @@
+tests/test_agente.py::test_consulta_flota_ordena_por_urgencia PASSED     [ 20%]
+tests/test_agente.py::test_escritura_valida_y_no_duplica PASSED          [ 40%]
+tests/test_agente.py::test_memoria_semantica PASSED                      [ 60%]
+tests/test_agente.py::test_grafo_replanifica_y_recuerda_el_hilo PASSED   [ 80%]
+tests/test_agente.py::test_escritura_no_autorizada_se_rechaza PASSED     [100%]
+============================== 5 passed in 9.65s ==============================

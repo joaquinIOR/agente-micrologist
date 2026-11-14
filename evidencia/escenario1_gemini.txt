@@ -1,0 +1,39 @@
+Agente MicroLogist (hilo 'evidencia'). Escribe 'salir' para terminar.
+
+Tú:   [plan] Consultar el estado real de la flota. | Consultar la política aplicable para documentos y mantenimientos. | Crear órdenes para documentos vencidos. | Crear órdenes para documentos por vencer. | Crear órdenes para mantenimientos pendientes.
+  [herramienta] revisar_flota({})
+  [resultado] {"documentos": [{"patente": "HRBD78", "estado": "en_taller", "tipo": "revision_tecnica", "vence": "2026-10-25", "dias_restantes": -20}, {"patente": "KXTR45", "estado": "operativo", "tipo": "revision_tecnica", "vence": "2026-11-09", "dias_restantes": -5}, {"patente": "LJPW12", "estado": "operativo", "tipo": "soap", "vence": "2026-11-24", "dias_restantes": 10}, {"patente": "PGSY90", "estado": "operativo", "tipo": "revision_tecnica", "vence": "2026-12-09", "dias_restantes": 25}], "mantenciones_atrasadas": [{"patente": "HRBD78", "estado": "en_taller", "km_desde_mantencion": 12500}, {"patente": "PGSY90", "estado": "operativo", "km_desde_mantencion": 11500}]}
+  [herramienta] buscar_politica({'consulta': 'política para documentos vencidos y por vencer, y mantenimientos pendientes'})
+  [resultado] - Cuando hay varias tareas pendientes se atienden primero los documentos vencidos, después los documentos próximos a vencer y al final las mantenciones preventivas.
+- Un documento que vence en 15 días o menos genera una orden de tipo documento con prioridad media; si vence entre 16 y 30 días, prioridad baja. El vehículo sigue operativo.
+- Un vehículo con revisión técnica, permiso de circulación o SOAP vencido no puede circular: debe quedar en estado 'bloqueado' y se crea una orden de tipo documento con prioridad alta.
+  [herramienta] cambiar_estado({'estado': 'bloqueado', 'patente': 'KXTR45'})
+  [resultado] KXTR45 pasó de 'operativo' a 'bloqueado'.
+  [herramienta] crear_orden({'motivo': 'revision_tecnica vencida', 'prioridad': 'alta', 'tipo': 'documento', 'patente': 'KXTR45'})
+  [resultado] Orden #2 creada para KXTR45 (documento, prioridad alta).
+  [herramienta] crear_orden({'patente': 'HRBD78', 'tipo': 'documento', 'motivo': 'revision_tecnica vencida', 'prioridad': 'alta'})
+  [resultado] Rechazada: HRBD78 ya tiene la orden abierta #1 de tipo documento. No se duplica.
+  [herramienta] crear_orden({'tipo': 'documento', 'prioridad': 'media', 'motivo': 'soap por vencer', 'patente': 'LJPW12'})
+  [resultado] Orden #3 creada para LJPW12 (documento, prioridad media).
+  [herramienta] crear_orden({'prioridad': 'baja', 'tipo': 'documento', 'motivo': 'revision_tecnica por vencer', 'patente': 'PGSY90'})
+  [resultado] Orden #4 creada para PGSY90 (documento, prioridad baja).
+  [herramienta] crear_orden({'tipo': 'mantencion', 'prioridad': 'media', 'patente': 'HRBD78', 'motivo': 'mantencion por kilometraje'})
+  [resultado] Orden #5 creada para HRBD78 (mantencion, prioridad media).
+  [herramienta] crear_orden({'patente': 'PGSY90', 'motivo': 'mantencion por kilometraje', 'tipo': 'mantencion', 'prioridad': 'media'})
+  [resultado] Orden #6 creada para PGSY90 (mantencion, prioridad media).
+
+Agente: Se ha revisado la flota y se han tomado las siguientes acciones para regularizar los pendientes:
+
+**Documentos vencidos:**
+*   **KXTR45 (revisión técnica vencida):** Se cambió el estado a 'bloqueado' y se creó una orden de tipo documento con prioridad 'alta'.
+*   **HRBD78 (revisión técnica vencida):** Ya se encontraba 'en_taller'. Se intentó crear una orden de tipo documento con prioridad 'alta', pero fue rechazada porque ya existía una orden abierta para este documento.
+
+**Documentos por vencer:**
+*   **LJPW12 (SOAP vence en 10 días):** Se creó una orden de tipo documento con prioridad 'media'. El vehículo permanece 'operativo'.
+*   **PGSY90 (revisión técnica vence en 25 días):** Se creó una orden de tipo documento con prioridad 'baja'. El vehículo permanece 'operativo'.
+
+**Mantenimientos pendientes:**
+*   **HRBD78 (12500 km desde la última mantención):** Se creó una orden de tipo mantención con prioridad 'media'. El vehículo permanece 'en_taller'.
+*   **PGSY90 (11500 km desde la última mantención):** Se creó una orden de tipo mantención con prioridad 'media'. El vehículo permanece 'operativo'.
+
+Tú: 

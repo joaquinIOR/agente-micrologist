@@ -179,6 +179,37 @@ p("Las pruebas se ejecutan con python -m pytest -q y usan un modelo guionado, qu
   "(orden duplicada, vehículo en taller, ruta del informe), la recuperación semántica, el grafo completo con "
   "replanificación y continuidad del hilo, y el rechazo de escrituras no autorizadas.")
 
+p("Resultado: los 5 casos de prueba pasan (5 passed). La salida completa está en evidencia/pytest.txt.")
+
+doc.add_heading("Evidencia de ejecución real", 2)
+p("Extracto de la ejecución del escenario 1 con Gemini, ante el mensaje «Revisa la flota y regulariza todo lo "
+  "pendiente». La traza completa está en evidencia/escenario1_gemini.txt.")
+TRAZA = [
+    "[plan] Consultar el estado real de la flota. | Consultar la política aplicable... | Crear órdenes para "
+    "documentos vencidos. | ...por vencer. | ...mantenimientos pendientes.",
+    "[herramienta] revisar_flota({})",
+    "[herramienta] buscar_politica({'consulta': 'política para documentos vencidos y por vencer...'})",
+    "[herramienta] cambiar_estado({'estado': 'bloqueado', 'patente': 'KXTR45'})",
+    "[resultado] KXTR45 pasó de 'operativo' a 'bloqueado'.",
+    "[herramienta] crear_orden({... 'prioridad': 'alta', 'tipo': 'documento', 'patente': 'KXTR45'})",
+    "[resultado] Orden #2 creada para KXTR45 (documento, prioridad alta).",
+    "[herramienta] crear_orden({'patente': 'HRBD78', 'tipo': 'documento', ... 'prioridad': 'alta'})",
+    "[resultado] Rechazada: HRBD78 ya tiene la orden abierta #1 de tipo documento. No se duplica.",
+    "[resultado] Orden #3 creada para LJPW12 (documento, prioridad media).",
+    "[resultado] Orden #4 creada para PGSY90 (documento, prioridad baja).",
+    "[resultado] Orden #5 y #6: mantención para HRBD78 y PGSY90 (prioridad media).",
+]
+for linea in TRAZA:
+    par = doc.add_paragraph()
+    par.paragraph_format.space_after = Pt(0)
+    r = par.add_run(linea)
+    r.font.name = "Consolas"
+    r.font.size = Pt(8)
+p("")
+p("La traza muestra el orden de prioridad de la política (vencidos, por vencer, mantenciones), la consulta de la "
+  "política antes de actuar y la adaptación ante una condición distinta: HRBD78 está en taller y ya tiene una orden, "
+  "así que el agente no lo bloquea y la herramienta rechaza la orden duplicada.")
+
 doc.add_heading("8. Limitaciones", 1)
 p("El historial de un hilo no se resume ni se recorta, por lo que una conversación muy larga puede exceder la ventana "
   "del modelo y aumenta el consumo de tokens. Los embeddings por defecto de Chroma están entrenados principalmente en "
