@@ -169,10 +169,13 @@ tests/                  pruebas
 
 ## Uso de IA
 
-El proyecto completo se desarrolló con Claude (Anthropic) mediante Claude Code: el código del agente, las pruebas,
-este README, el diagrama, el informe y la presentación. El autor eligió el caso, aportó las credenciales de los
-proveedores de modelos y decidió entre las alternativas propuestas. Los resultados descritos provienen de
-ejecuciones reales del agente.
+La mayor parte del proyecto la desarrollé yo. Elegí el caso de MicroLogist, decidí qué tenía que hacer el agente
+y cómo se iba a construir, y proporcioné las keys de los proveedores de modelos. También fui probando el agente con
+el modelo real y decidiendo qué había que corregir.
+
+Usé Claude (Anthropic), mediante Claude Code, como apoyo para programar y redactar. Considero que fue una
+herramienta útil para avanzar más rápido, pero las decisiones de lo que se tenía que hacer fueron mías. Los
+resultados que se describen en este README vienen de ejecuciones reales del agente.
 
 ## Referencias
 
