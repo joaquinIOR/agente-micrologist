@@ -1,8 +1,4 @@
-"""Memoria de largo plazo y recuperación semántica (Chroma local, persistente en disco).
-
-Dos colecciones: 'politicas' (reglas de la empresa, base de conocimiento) y
-'recuerdos' (hechos y preferencias que el agente guarda entre conversaciones).
-"""
+"""Memoria de largo plazo en Chroma: colecciones 'politicas' y 'recuerdos'."""
 import uuid
 from datetime import date
 
@@ -10,7 +6,7 @@ import chromadb
 
 from .datos import DIR
 
-# Políticas simuladas de MicroLogist: son el criterio con que el agente prioriza y decide.
+# Políticas simuladas de MicroLogist.
 POLITICAS = [
     "Un vehículo con revisión técnica, permiso de circulación o SOAP vencido no puede circular: "
     "debe quedar en estado 'bloqueado' y se crea una orden de tipo documento con prioridad alta.",
@@ -28,7 +24,7 @@ _cliente = None
 
 
 def _coleccion(nombre):
-    # shortcut: embeddings por defecto de Chroma (MiniLM, pensado para inglés); cambiar a uno multilingüe si la base de políticas crece
+    # shortcut: embeddings en inglés; usar uno multilingüe si crecen las políticas
     global _cliente
     if _cliente is None:
         _cliente = chromadb.PersistentClient(path=str(DIR / "chroma"))

@@ -1,4 +1,4 @@
-"""Herramientas del agente: consulta (flota, políticas), escritura (órdenes, estado, informes, recuerdos)."""
+"""Herramientas de consulta y escritura del agente."""
 import json
 import re
 import unicodedata
@@ -96,7 +96,7 @@ def cambiar_estado(patente: str, estado: str) -> str:
 def redactar_informe(titulo: str, contenido_markdown: str) -> str:
     """Escribe un informe en Markdown en la carpeta de informes y devuelve la ruta del archivo."""
     sin_tildes = unicodedata.normalize("NFKD", titulo).encode("ascii", "ignore").decode()
-    nombre = re.sub(r"[^a-z0-9]+", "-", sin_tildes.lower()).strip("-") or "informe"  # el título no puede salir de la carpeta
+    nombre = re.sub(r"[^a-z0-9]+", "-", sin_tildes.lower()).strip("-") or "informe"  # evita salir de la carpeta
     ruta = DIR / "informes" / f"{date.today().isoformat()}-{nombre}.md"
     ruta.parent.mkdir(parents=True, exist_ok=True)
     ruta.write_text(f"# {titulo}\n\n{contenido_markdown}\n", encoding="utf-8")

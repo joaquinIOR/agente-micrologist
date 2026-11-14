@@ -38,7 +38,7 @@ def main():
     elif os.environ.get("LLM_RESPALDO"):
         try:
             respaldo = init_chat_model(os.environ["LLM_RESPALDO"], temperature=0)
-        except Exception as e:  # p. ej. falta la key del respaldo: el agente funciona igual, solo sin respaldo
+        except Exception as e:  # sigue sin respaldo
             print(f"  [aviso] sin modelo de respaldo: {e}")
     checkpointer = SqliteSaver(sqlite3.connect(DIR / "hilos.db", check_same_thread=False))
     agente = construir(llm, checkpointer, respaldo)
@@ -49,12 +49,12 @@ def main():
     while (texto := input("\nTú: ").strip()) != "salir":
         if not texto:
             continue
-        # Se imprime cada paso del grafo para que el razonamiento sea visible en la demo.
+        # muestra cada paso del grafo
         try:
             for paso in agente.stream({"messages": [("user", texto)]}, config, stream_mode="updates"):
                 for nodo, cambio in paso.items():
                     mostrar(nodo, cambio or {})
-        except Exception as e:  # un fallo del proveedor no debe botar la sesión; el hilo queda guardado
+        except Exception as e:  # no bota la sesión
             print(f"  [error] {e}")
 
 

@@ -1,8 +1,4 @@
-"""Orquestación del agente con LangGraph: recuperar -> planificar -> ejecutar <-> herramientas -> revisar.
-
-Si el revisor detecta que quedó algo pendiente o que una condición cambió
-(por ejemplo, una herramienta rechazó una acción), el flujo vuelve a planificar.
-"""
+"""Grafo: recuperar -> planificar -> ejecutar <-> herramientas -> revisar (y replanificar si falta algo)."""
 import time
 from datetime import date
 from typing import Annotated, Literal, TypedDict
@@ -17,17 +13,13 @@ from pydantic import BaseModel, Field
 from . import memoria
 from .herramientas import HERRAMIENTAS
 
-MAX_PLANES = 3  # tope de replanificaciones: evita un bucle infinito planificar/revisar
-MAX_TOKENS_HISTORIAL = 6000  # turnos anteriores que se envían al modelo; el turno actual va siempre completo
+MAX_PLANES = 3  # evita un bucle infinito
+MAX_TOKENS_HISTORIAL = 6000  # historial enviado al modelo
 REVISION = "[Revisión automática]"
 
 
 def _recientes(mensajes):
-    """Turno actual completo + los turnos anteriores más recientes que caben en MAX_TOKENS_HISTORIAL.
-
-    El historial completo sigue guardado en el checkpointer; solo se acota lo que se envía al modelo, para que un
-    hilo largo no exceda la ventana ni multiplique el consumo de tokens. Lo que deba recordarse más allá de esa
-    ventana va a la memoria de largo plazo (guardar_recuerdo)."""
+    """Turno actual completo + turnos anteriores recientes hasta MAX_TOKENS_HISTORIAL."""
     inicio = max((i for i, m in enumerate(mensajes)
                   if m.type == "human" and not str(m.content).startswith(REVISION)), default=0)
     anteriores = trim_messages(mensajes[:inicio], max_tokens=MAX_TOKENS_HISTORIAL, strategy="last",
@@ -39,12 +31,12 @@ ROL = ("Eres el asistente de gestión de flota de MicroLogist, una empresa de tr
 
 
 class Estado(TypedDict):
-    messages: Annotated[list, add_messages]  # memoria de corto plazo: la persiste el checkpointer por hilo
+    messages: Annotated[list, add_messages]  # memoria de corto plazo
     contexto: str
     plan: list[str]
     planes: int
     pendiente: str
-    escrituras: list[str]  # herramientas de escritura que la solicitud autoriza; el resto se rechaza en código
+    escrituras: list[str]  # escrituras autorizadas
 
 
 Escritura = Literal["crear_orden", "cambiar_estado", "redactar_informe", "guardar_recuerdo"]
@@ -67,14 +59,14 @@ class Revision(BaseModel):
 
 
 def _con_reintentos(modelo, mensajes):
-    for intento in range(3):  # el modelo a veces genera una salida inválida y el proveedor responde 400
+    for intento in range(3):  # reintenta salidas inválidas
         try:
             return modelo.invoke(mensajes)
         except Exception as e:
             if intento == 2:
                 raise
             if getattr(e, "status_code", None) == 429:
-                # Límite por minuto: se espera lo que indica el proveedor. Límite diario (espera larga): se informa.
+                # límite por minuto: espera; límite diario: falla
                 cabeceras = getattr(getattr(e, "response", None), "headers", None) or {}
                 espera = float(cabeceras.get("retry-after", 999))
                 if espera > 60:
@@ -83,8 +75,7 @@ def _con_reintentos(modelo, mensajes):
 
 
 class _Modelos:
-    """Modelo principal con respaldo: si el principal falla (cuota diaria agotada, proveedor caído), la llamada se
-    repite con el de respaldo, y desde ahí se sigue usando el respaldo para no gastar intentos en uno sin cuota."""
+    """Si el modelo principal falla, repite la llamada con el respaldo y sigue con él."""
 
     def __init__(self, principal, respaldo=None):
         self.principal, self.respaldo, self.en_respaldo = principal, respaldo, False
@@ -106,8 +97,7 @@ class _Modelos:
 
 
 def _transcripcion(mensajes):
-    """Historial como texto plano: con las llamadas a herramientas en crudo, el planificador y el
-    revisor intentan usar esas herramientas en vez de devolver su salida estructurada."""
+    """Historial en texto plano, para que planificador y revisor no intenten llamar herramientas."""
     lineas = []
     for m in mensajes:
         if m.type == "tool":
@@ -167,7 +157,7 @@ def construir(llm, checkpointer=None, respaldo=None):
         return {"messages": [_invocar(ejecutor, [instruccion] + _recientes(estado["messages"]))]}
 
     def herramientas(estado):
-        # La autorización se impone aquí y no en el prompt: el modelo ignoraba la instrucción y escribía sin que se lo pidieran.
+        # permisos validados en código: el prompt no bastaba
         respuestas = []
         for llamada in estado["messages"][-1].tool_calls:
             nombre = llamada["name"]
@@ -176,7 +166,7 @@ def construir(llm, checkpointer=None, respaldo=None):
             else:
                 try:
                     salida = POR_NOMBRE[nombre].invoke(llamada["args"])
-                except Exception as e:  # argumentos inválidos o herramienta inexistente: el modelo debe poder corregir
+                except Exception as e:  # el modelo puede corregir
                     salida = f"Error al ejecutar {nombre}: {e}"
             respuestas.append(ToolMessage(str(salida), tool_call_id=llamada["id"], name=nombre))
         return {"messages": respuestas}
@@ -208,5 +198,5 @@ def construir(llm, checkpointer=None, respaldo=None):
     g.add_conditional_edges("ejecutar", tools_condition, {"tools": "herramientas", END: "revisar"})
     g.add_edge("herramientas", "ejecutar")
     g.add_conditional_edges("revisar", tras_revision, {"planificar": "planificar", END: END})
-    # shortcut: los turnos antiguos se recortan, no se resumen; agregar un resumen si se necesita contexto de turnos muy lejanos
+    # shortcut: el historial se recorta, no se resume
     return g.compile(checkpointer=checkpointer)

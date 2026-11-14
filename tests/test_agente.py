@@ -33,7 +33,7 @@ def test_memoria_semantica():
 
 
 class ModeloGuionado:
-    """LLM falso: devuelve respuestas fijas en orden, para probar la orquestación sin API key."""
+    """LLM falso con respuestas fijas."""
 
     def __init__(self, guion):
         self.guion = list(guion)
@@ -74,13 +74,13 @@ def test_grafo_replanifica_y_recuerda_el_hilo():
     assert con.execute("SELECT estado FROM vehiculos WHERE patente='KXTR45'").fetchone()["estado"] == "bloqueado"
     assert con.execute("SELECT 1 FROM ordenes WHERE patente='KXTR45'").fetchone()
 
-    fin = agente.invoke({"messages": [("user", "hola")]}, config)  # mismo hilo: conserva el historial
+    fin = agente.invoke({"messages": [("user", "hola")]}, config)  # mismo hilo
     assert fin["messages"][0].content == "Regulariza KXTR45" and fin["planes"] == 1
 
 
 def test_escritura_no_autorizada_se_rechaza():
     llm = ModeloGuionado([
-        Plan(pasos=["Consultar PGSY90"]),  # una pregunta: el plan no autoriza escrituras
+        Plan(pasos=["Consultar PGSY90"]),  # sin escrituras autorizadas
         _llamada("crear_orden", patente="PGSY90", tipo="mantencion", motivo="km", prioridad="media"),
         AIMessage("PGSY90 tiene la mantención atrasada."),
         Revision(completo=True, pendiente=""),
@@ -98,20 +98,20 @@ def test_historial_largo_se_recorta_y_conserva_el_turno_actual():
     from agente.grafo import MAX_TOKENS_HISTORIAL, REVISION, _recientes
 
     viejos = []
-    for i in range(300):  # un hilo muy largo: ~300 turnos anteriores
+    for i in range(300):  # hilo largo
         viejos += [HumanMessage(f"pregunta {i} " + "x" * 200), AIMessage(f"respuesta {i} " + "y" * 200)]
     turno = [HumanMessage("Regulariza KXTR45"), _llamada("cambiar_estado", patente="KXTR45", estado="bloqueado"),
              HumanMessage(f"{REVISION} Falta: crear la orden")]
     enviados = _recientes(viejos + turno)
-    assert enviados[-3:] == turno  # el turno actual va completo, incluida la revisión automática
+    assert enviados[-3:] == turno  # turno actual completo
     anteriores = enviados[:-3]
     assert anteriores and anteriores[0].type == "human" and anteriores[-1].content.startswith("respuesta 299")
     assert count_tokens_approximately(anteriores) <= MAX_TOKENS_HISTORIAL
-    assert _recientes(turno) == turno  # un hilo corto no se toca
+    assert _recientes(turno) == turno  # hilo corto intacto
 
 
 class ModeloSinCuota(ModeloGuionado):
-    """LLM falso que siempre falla, como un proveedor con la cuota diaria agotada."""
+    """LLM falso sin cuota."""
 
     def __init__(self):
         super().__init__([])
@@ -133,5 +133,5 @@ def test_respaldo_automatico_cuando_el_principal_falla():
     fin = construir(principal, MemorySaver(), respaldo).invoke({"messages": [("user", "¿Cómo está el KXTR45?")]},
                                                              {"configurable": {"thread_id": "t3"}})
     assert fin["messages"][-1].content == "KXTR45 está bloqueado."
-    assert principal.llamadas == 3  # un solo intento fallido (con sus reintentos); después sigue con el respaldo
+    assert principal.llamadas == 3  # luego solo el respaldo
     assert not respaldo.guion

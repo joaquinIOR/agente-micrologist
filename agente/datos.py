@@ -17,7 +17,7 @@ CREATE TABLE ordenes (id INTEGER PRIMARY KEY, patente TEXT, tipo TEXT, motivo TE
 
 def _sembrar(con):
     hoy = date.today()
-    en = lambda dias: (hoy + timedelta(days=dias)).isoformat()  # fechas relativas: la demo siempre tiene casos vigentes
+    en = lambda dias: (hoy + timedelta(days=dias)).isoformat()  # fechas relativas a hoy
     con.executescript(ESQUEMA)
     con.executemany("INSERT INTO vehiculos VALUES (?,?,?,?,?)", [
         ("KXTR45", "Camión Mercedes-Benz Atego 1726", 148200, 139000, "operativo"),
