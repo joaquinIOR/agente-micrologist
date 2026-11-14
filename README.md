@@ -177,7 +177,7 @@ el modelo real y decidiendo qué había que corregir.
 
 Usé Claude (Anthropic), mediante Claude Code, como apoyo para programar y redactar. Considero que fue una
 herramienta útil para avanzar más rápido, pero las decisiones de lo que se tenía que hacer fueron mías. Los
-resultados que se describen en este README vienen de ejecuciones reales del agente.
+resultados que se describen en este README vienen de ejecuciones reales del agente. La presentación de la evaluación la hice con Claude.
 
 ## Referencias
 

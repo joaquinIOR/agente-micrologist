@@ -222,7 +222,7 @@ p("El agente resuelve el requerimiento de MicroLogist: revisa la flota, decide s
   "importante fue validar en código las acciones que modifican datos, porque el modelo no siempre respeta las "
   "instrucciones del prompt. El diseño en grafo permite crecer hacia la operación real cambiando los componentes de "
   "datos sin rehacer la orquestación.")
-p("Para el desarrollo usé Claude Code como apoyo para programar y redactar; las decisiones de diseño fueron mías.")
+p("Para el desarrollo usé Claude Code como apoyo para programar y redactar; las decisiones de diseño fueron mías. La presentación la hice con Claude.")
 
 doc.add_heading("Referencias", 1)
 REFS = [
