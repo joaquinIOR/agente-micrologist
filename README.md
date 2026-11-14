@@ -81,7 +81,7 @@ ante el límite diario informa el error sin botar la sesión.
 Requiere Python 3.12.
 
 ```bash
-python -m venv .venv
+py -3.12 -m venv .venv
 ```
 
 ```bash
@@ -92,7 +92,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Copiar `.env.example` a `.env` y completar `GROQ_API_KEY` (key gratuita en https://console.groq.com/keys). El proveedor se puede cambiar en `LLM_MODELO`.
+Copiar `.env.example` a `.env` y completar `GOOGLE_API_KEY` (key gratuita en https://aistudio.google.com/apikey). El proveedor se puede cambiar en `LLM_MODELO`; el `.env.example` deja Groq listo como respaldo.
 
 ## Ejecución
 
@@ -155,16 +155,18 @@ tests/                  pruebas
   la flota se valida en código, donde es determinista y verificable con pruebas.
 - **Tope de 3 planes:** acota el consumo de tokens y evita un bucle infinito entre planificar y revisar. En las
   ejecuciones nunca se necesitaron más de 2.
-- **Groq con `openai/gpt-oss-120b`:** la capa gratuita de Gemini no estaba disponible para la cuenta; Groq es
-  gratuito y de baja latencia, útil para una demo en vivo. El modelo soporta herramientas y salida estructurada; el
-  de 20B siguió peor el plan. El costo son los límites de uso.
+- **Gemini (`gemini-2.5-flash`) como modelo principal y Groq como respaldo:** el agente partió con Groq y
+  `openai/gpt-oss-120b`, pero su cuota diaria gratuita se agotaba con pocas ejecuciones completas. Gemini tiene capa
+  gratuita, soporta herramientas y salida estructurada (verificado con el agente) y una ventana de contexto amplia.
+  Como el modelo se carga con `init_chat_model`, volver a Groq es cambiar una línea del `.env`. En Groq, el modelo de
+  20B siguió peor el plan que el de 120B.
 
 ## Limitaciones conocidas
 
 - El historial de un hilo no se resume ni recorta; un hilo muy largo puede exceder la ventana del modelo.
 - Los embeddings por defecto de Chroma están entrenados principalmente en inglés.
 - Datos y políticas son simulados; no hay conexión con el sistema real de MicroLogist.
-- La capa gratuita de Groq limita `openai/gpt-oss-120b` a 200.000 tokens por día; el escenario 1 completo consume una parte importante. Para la demo conviene llegar con la cuota del día sin usar.
+- Las capas gratuitas de Gemini y Groq tienen límites de uso diarios; el escenario 1 completo consume una parte importante. Para la demo conviene llegar con la cuota del día sin usar.
 - Los modelos pequeños (p. ej. `openai/gpt-oss-20b`) siguen peor el plan y pueden ejecutar acciones no pedidas.
 
 ## Uso de IA
@@ -180,6 +182,7 @@ resultados que se describen en este README vienen de ejecuciones reales del agen
 ## Referencias
 
 - Chroma. (s. f.). *Chroma documentation* [Documentación de software]. https://docs.trychroma.com
+- Google. (s. f.). *Gemini API documentation* [Documentación de software]. https://ai.google.dev/gemini-api/docs
 - Groq. (s. f.). *GroqCloud documentation* [Documentación de software]. https://console.groq.com/docs
 - LangChain. (s. f.-a). *LangChain documentation* [Documentación de software]. https://docs.langchain.com
 - LangChain. (s. f.-b). *LangGraph documentation* [Documentación de software]. https://docs.langchain.com/oss/python/langgraph/overview

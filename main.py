@@ -31,7 +31,7 @@ def main():
     load_dotenv()
     hilo = sys.argv[1] if len(sys.argv) > 1 else "principal"
     DIR.mkdir(parents=True, exist_ok=True)
-    llm = init_chat_model(os.environ.get("LLM_MODELO", "groq:openai/gpt-oss-120b"), temperature=0)
+    llm = init_chat_model(os.environ.get("LLM_MODELO", "google_genai:gemini-2.5-flash"), temperature=0)
     checkpointer = SqliteSaver(sqlite3.connect(DIR / "hilos.db", check_same_thread=False))
     agente = construir(llm, checkpointer)
     config = {"configurable": {"thread_id": hilo}}
