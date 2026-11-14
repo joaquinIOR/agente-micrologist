@@ -1,0 +1,8 @@
+.venv/
+.env
+datos/
+__pycache__/
+.pytest_cache/
+informe/*.docx
+informe/*.pdf
+informe/*.pptx

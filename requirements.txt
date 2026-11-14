@@ -1,0 +1,7 @@
+langgraph
+langchain
+langgraph-checkpoint-sqlite
+langchain-groq
+chromadb
+python-dotenv
+pytest
