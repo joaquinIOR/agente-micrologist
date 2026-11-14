@@ -5,3 +5,4 @@ langchain-groq
 chromadb
 python-dotenv
 pytest
+langchain-google-genai
